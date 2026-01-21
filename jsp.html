@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SmartPrix ULTRA 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #D4AF37;
+            --bg: #0A0A0B;
+            --card: #151517;
+            --input: #1F1F22;
+            --text: #FFFFFF;
+            --text-dim: #8E8E93;
+            --primary: #007AFF;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+        /* --- LOGIN --- */
+        #screen-login { height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 30px; background: radial-gradient(circle at top right, #1c1c1e, #0a0a0b); }
+        .login-header { text-align: center; margin-bottom: 40px; }
+        .login-header h1 { font-size: 32px; font-weight: 800; }
+        .login-header span { color: var(--gold); }
+        .login-card { background: var(--card); padding: 30px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.05); }
+
+        /* --- UI COMPONENTS --- */
+        .field { margin-bottom: 20px; }
+        .field label { display: block; font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
+        input { width: 100%; background: var(--input); border: 1px solid rgba(255,255,255,0.1); padding: 18px 20px; border-radius: 18px; color: white; font-size: 16px; transition: 0.3s; }
+        input:focus { outline: none; border-color: var(--gold); }
+        .btn-primary { width: 100%; padding: 20px; border-radius: 20px; border: none; background: var(--gold); color: black; font-size: 16px; font-weight: 800; cursor: pointer; }
+
+        /* --- SELECTORS --- */
+        .toggle-group { display: flex; background: var(--input); padding: 5px; border-radius: 15px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .toggle-btn { flex: 1; padding: 10px; border: none; border-radius: 10px; font-size: 11px; font-weight: 700; color: var(--text-dim); background: transparent; cursor: pointer; transition: 0.3s; }
+        .toggle-btn.active { background: var(--gold); color: black; }
+
+        /* --- APP INTERFACE --- */
+        .container { padding: 20px; padding-bottom: 120px; }
+        .card { background: var(--card); border-radius: 28px; padding: 25px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
+        .app-header { padding: 30px 20px 10px; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* --- RESULTS --- */
+        #res-box { text-align: center; border: 2px solid var(--gold); background: #000; }
+        .res-label { font-size: 11px; color: var(--gold); font-weight: 800; letter-spacing: 1px; }
+        .res-price { font-size: 42px; font-weight: 900; margin: 10px 0; color: white; }
+
+        /* --- NAVIGATION --- */
+        .nav-bar { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); width: 85%; background: rgba(30, 30, 32, 0.85); backdrop-filter: blur(20px); padding: 15px; border-radius: 25px; display: flex; justify-content: space-around; border: 1px solid rgba(255,255,255,0.1); z-index: 100; }
+        .nav-item { font-size: 10px; font-weight: 700; color: var(--text-dim); text-align: center; cursor: pointer; }
+        .nav-item.active { color: var(--gold); }
+
+        .hidden { display: none; }
+        .animate { animation: slideUp 0.4s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        .hist-item { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    </style>
+</head>
+<body>
+
+    <div id="screen-login">
+        <div class="login-header">
+            <h1>SmartPrix<span> ULTRA</span></h1>
+            <p>Accès Commerçant Privé</p>
+        </div>
+        <div class="login-card">
+            <div class="field">
+                <label>UTILISATEUR</label>
+                <input type="text" id="username" placeholder="Identifiant">
+            </div>
+            <div class="field">
+                <label>MOT DE PASSE</label>
+                <input type="password" id="password" placeholder="••••••••">
+            </div>
+            <button class="btn-primary" onclick="handleLogin()">SE CONNECTER</button>
+        </div>
+    </div>
+
+    <div id="screen-app" class="hidden">
+        <div class="app-header">
+            <h2 style="font-weight: 800;">Tableau de Bord</h2>
+            <a href="#" style="color:#FF453A; font-size:12px; font-weight:700; text-decoration:none;" onclick="location.reload()">Quitter</a>
+        </div>
+
+        <div class="container">
+            <div id="view-calc" class="animate">
+                <div class="card">
+                    <div class="field">
+                        <label>ARTICLE</label>
+                        <input type="text" id="p-name" placeholder="Nom du produit">
+                    </div>
+
+                    <label>ACHAT EN DEVISE</label>
+                    <div class="toggle-group">
+                        <button class="toggle-btn active" id="d-dz" onclick="setDevise('dz')">DA</button>
+                        <button class="toggle-btn" id="d-eur" onclick="setDevise('eur')">EURO</button>
+                        <button class="toggle-btn" id="d-trl" onclick="setDevise('trl')">LIRA</button>
+                    </div>
+
+                    <div id="box-devise" class="hidden animate" style="margin-bottom:20px; background:#1F1F22; padding:15px; border-radius:15px;">
+                        <div style="display:flex; gap:10px;">
+                            <div><label>PRIX</label><input type="number" id="v-devise" oninput="convert()"></div>
+                            <div><label>TAUX</label><input type="number" id="t-devise" value="245" oninput="convert()"></div>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>ACHAT TOTAL (DA)</label>
+                        <input type="number" id="p-achat" placeholder="0">
+                    </div>
+
+                    <div class="field">
+                        <label>QUANTITÉ</label>
+                        <input type="number" id="p-qte" value="1">
+                    </div>
+
+                    <label>MODE DE CALCUL DU PROFIT</label>
+                    <div class="toggle-group">
+                        <button class="toggle-btn active" id="m-total" onclick="setProfitMode('total')">SUR LE LOT (TOTAL)</button>
+                        <button class="toggle-btn" id="m-unit" onclick="setProfitMode('unit')">PAR PIÈCE (HABBA)</button>
+                    </div>
+
+                    <div class="field">
+                        <label id="label-benef">PROFIT SOUHAITÉ (DA)</label>
+                        <input type="number" id="p-benef" placeholder="Montant du gain" style="border-color: var(--gold);">
+                    </div>
+
+                    <button class="btn-primary" onclick="runCalcul()">CALCULER PRIX DE VENTE</button>
+                </div>
+
+                <div id="res-box" class="card hidden animate">
+                    <span class="res-label">PRIX ÉTIQUETTE</span>
+                    <div class="res-price" id="out-etik">0 DA</div>
+                    <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 15px 0;"></div>
+                    <div style="display: flex; justify-content: space-between; font-size: 14px;">
+                        <span style="color: var(--text-dim);">Prix Min (Dernier Mot) :</span>
+                        <span id="out-min" style="font-weight: 800; color: var(--gold);">0 DA</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-hist" class="hidden animate">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px; color: var(--gold);">Historique Récent</h3>
+                    <div id="list-hist"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-bar">
+            <div class="nav-item active" onclick="switchNav('calc')"><div style="font-size:22px;">⚡</div>CALCUL</div>
+            <div class="nav-item" onclick="switchNav('hist')"><div style="font-size:22px;">📂</div>HISTO</div>
+        </div>
+    </div>
+
+    <script>
+        const USERS = [{ user: "admin", pass: "2026" }];
+        let profitMode = 'total'; 
+        let currentDev = 'dz';
+
+        function handleLogin() {
+            const u = document.getElementById('username').value.toLowerCase();
+            const p = document.getElementById('password').value;
+            if (USERS.find(x => x.user === u && x.pass === p)) {
+                document.getElementById('screen-login').style.display = 'none';
+                document.getElementById('screen-app').classList.remove('hidden');
+                renderHistory();
+            } else { alert("Identifiants incorrects."); }
+        }
+
+        function switchNav(p) {
+            document.getElementById('view-calc').classList.toggle('hidden', p !== 'calc');
+            document.getElementById('view-hist').classList.toggle('hidden', p !== 'hist');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        function setDevise(d) {
+            currentDev = d;
+            document.querySelectorAll('.devise-btn, .toggle-btn').forEach(el => { if(el.id.startsWith('d-')) el.classList.remove('active') });
+            document.getElementById('d-'+d).classList.add('active');
+            const box = document.getElementById('box-devise');
+            if(d === 'dz') box.classList.add('hidden');
+            else {
+                box.classList.remove('hidden');
+                document.getElementById('t-devise').value = (d === 'eur') ? 245 : 8.5;
+            }
+        }
+
+        function convert() {
+            const v = document.getElementById('v-devise').value;
+            const t = document.getElementById('t-devise').value;
+            document.getElementById('p-achat').value = Math.round(v * t);
+        }
+
+        function setProfitMode(m) {
+            profitMode = m;
+            document.getElementById('m-total').classList.toggle('active', m === 'total');
+            document.getElementById('m-unit').classList.toggle('active', m === 'unit');
+            document.getElementById('label-benef').innerText = (m === 'total') ? "PROFIT TOTAL SOUHAITÉ (DA)" : "PROFIT PAR PIÈCE (DA)";
+        }
+
+        function runCalcul() {
+            const name = document.getElementById('p-name').value || "Article";
+            const achat = parseFloat(document.getElementById('p-achat').value);
+            const qte = parseFloat(document.getElementById('p-qte').value);
+            const benef = parseFloat(document.getElementById('p-benef').value);
+
+            if (achat && qte && benef) {
+                let prixRevientUnit = (achat / qte) + 50; 
+                let prixMin;
+
+                // LOGIQUE CHOIX PROFIT
+                if (profitMode === 'total') {
+                    prixMin = prixRevientUnit + (benef / qte);
+                } else {
+                    prixMin = prixRevientUnit + benef;
+                }
+
+                let prixEtiquette = prixMin / 0.85;
+                const round = (n) => Math.ceil(n / 50) * 50;
+
+                const rEtik = round(prixEtiquette);
+                const rMin = round(prixMin);
+
+                document.getElementById('out-etik').innerText = rEtik.toLocaleString() + " DA";
+                document.getElementById('out-min').innerText = rMin.toLocaleString() + " DA";
+                document.getElementById('res-box').classList.remove('hidden');
+                
+                saveHistory(name, rEtik);
+            }
+        }
+
+        function saveHistory(n, p) {
+            let data = JSON.parse(localStorage.getItem('ultra_hist') || '[]');
+            data.unshift({ name: n, price: p, date: new Date().toLocaleDateString() });
+            localStorage.setItem('ultra_hist', JSON.stringify(data.slice(0, 10)));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            let data = JSON.parse(localStorage.getItem('ultra_hist') || '[]');
+            const list = document.getElementById('list-hist');
+            list.innerHTML = data.length ? data.map(x => `
+                <div class="hist-item">
+                    <div><div style="font-size:10px; color:#555;">${x.date}</div><div style="font-weight:700;">${x.name}</div></div>
+                    <div style="font-weight:800; color:var(--gold);">${x.price} DA</div>
+                </div>
+            `).join('') : '<p style="text-align:center;color:#444;">Aucun historique</p>';
+        }
+    </script>
+</body>
+</html>
